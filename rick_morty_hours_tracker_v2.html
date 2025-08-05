@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rick and Morty 工时查询系统</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+    
+    <!-- Rick and Morty 风格配置 -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        rickBlue: '#00BFFF',
+                        rickCyan: '#00FFFF',
+                        rickGreen: '#00FF00',
+                        rickYellow: '#FFFF00',
+                        rickPurple: '#9932CC',
+                        rickBlack: '#000000',
+                        rickGray: '#282828',
+                    },
+                    fontFamily: {
+                        rick: ['"Get Schwifty"', 'cursive', 'sans-serif'],
+                        morty: ['"Alien Encounters"', 'sans-serif'],
+                    },
+                    animation: {
+                        'float': 'float 3s ease-in-out infinite',
+                        'pulse-fast': 'pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'bounce-slow': 'bounce 2s infinite',
+                        'spin-slow': 'spin 3s linear infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .text-shadow-glow {
+                text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 15px #00BFFF, 0 0 20px #00BFFF, 0 0 25px #00BFFF;
+            }
+            .text-shadow-glow-green {
+                text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 15px #00FF00, 0 0 20px #00FF00, 0 0 25px #00FF00;
+            }
+            .text-shadow-glow-yellow {
+                text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 15px #FFFF00, 0 0 20px #FFFF00, 0 0 25px #FFFF00;
+            }
+            .text-shadow-glow-purple {
+                text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 15px #9932CC, 0 0 20px #9932CC, 0 0 25px #9932CC;
+            }
+            .bg-rick-gradient {
+                background: linear-gradient(135deg, #000000 0%, #282828 50%, #000000 100%);
+            }
+            .border-glow {
+                box-shadow: 0 0 5px #00BFFF, 0 0 10px #00BFFF;
+            }
+            .border-glow-green {
+                box-shadow: 0 0 5px #00FF00, 0 0 10px #00FF00;
+            }
+            .border-glow-yellow {
+                box-shadow: 0 0 5px #FFFF00, 0 0 10px #FFFF00;
+            }
+            .rick-button {
+                transition: all 0.3s ease;
+            }
+            .rick-button:hover {
+                transform: scale(1.05);
+                box-shadow: 0 0 15px #00BFFF;
+            }
+            .morty-button {
+                transition: all 0.3s ease;
+            }
+            .morty-button:hover {
+                transform: scale(1.05);
+                box-shadow: 0 0 15px #00FF00;
+            }
+            .jerry-button {
+                transition: all 0.3s ease;
+            }
+            .jerry-button:hover {
+                transform: scale(1.05);
+                box-shadow: 0 0 15px #FFFF00;
+            }
+            .portal-bg {
+                background: radial-gradient(circle, #00BFFF 0%, #000000 70%);
+                animation: portal-pulse 2s infinite alternate;
+            }
+            @keyframes portal-pulse {
+                from { opacity: 0.8; transform: scale(1); }
+                to { opacity: 1; transform: scale(1.05); }
+            }
+            .character-image {
+                transition: all 0.3s ease;
+            }
+            .character-image:hover {
+                transform: scale(1.1) rotate(5deg);
+            }
+            .glass-effect {
+                background: rgba(255, 255, 255, 0.1);
+                backdrop-filter: blur(10px);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+            }
+        }
+    </style>
+    
+    <!-- 自定义字体 -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body class="bg-rick-gradient min-h-screen text-white font-sans">
+    <!-- 页面标题 -->
+    <header class="text-center py-8 relative overflow-hidden">
+        <div class="absolute top-0 left-0 w-full h-full portal-bg opacity-20 z-0"></div>
+        <h1 class="text-[clamp(2rem,5vw,4rem)] font-bold text-rickBlue text-shadow-glow mb-4 relative z-10">
+            <i class="fas fa-portal-open mr-4 animate-spin-slow"></i>
+            Rick and Morty 工时追踪器
+            <i class="fas fa-portal-open ml-4 animate-spin-slow"></i>
+        </h1>
+        <p class="text-[clamp(1rem,2vw,1.25rem)] text-rickCyan text-shadow-glow-green max-w-3xl mx-auto relative z-10">
+            输入你的名字，探索你的工时宇宙！
+        </p>
+    </header>
+
+    <!-- 主要内容区域 -->
+    <main class="container mx-auto px-4 py-8 relative">
+        <!-- 查询区域 -->
+        <section class="glass-effect rounded-2xl p-8 mb-12 max-w-3xl mx-auto border border-rickBlue border-glow">
+            <div class="flex flex-col md:flex-row gap-4 items-center justify-center">
+                <div class="relative w-full md:w-3/4">
+                    <input 
+                        type="text" 
+                        id="nameInput" 
+                        placeholder="输入你的名字..." 
+                        class="w-full bg-rickBlack/50 border-2 border-rickBlue rounded-full px-6 py-4 text-white text-lg placeholder-rickCyan/70 focus:outline-none focus:border-rickCyan focus:border-glow transition-all"
+                    >
+                    <i class="fas fa-search absolute right-4 top-1/2 transform -translate-y-1/2 text-rickCyan"></i>
+                </div>
+                <button 
+                    id="searchButton" 
+                    class="rick-button bg-rickBlue hover:bg-rickCyan text-rickBlack font-bold py-4 px-8 rounded-full text-lg transition-all"
+                >
+                    <i class="fas fa-search mr-2"></i>查询工时
+                </button>
+            </div>
+            
+            <!-- 自动完成下拉菜单 -->
+            <div id="autocomplete" class="hidden absolute bg-rickBlack/90 border-2 border-rickBlue rounded-lg mt-2 w-[calc(75%-2rem)] max-h-60 overflow-y-auto z-50"></div>
+        </section>
+
+        <!-- 结果显示区域 -->
+        <section id="resultSection" class="hidden">
+            <!-- 员工信息卡片 -->
+            <div class="glass-effect rounded-2xl p-8 mb-12 max-w-4xl mx-auto border border-rickBlue border-glow">
+                <div class="flex flex-col md:flex-row items-center gap-8">
+                    <div class="w-32 h-32 bg-rickBlack rounded-full flex items-center justify-center overflow-hidden border-4 border-rickBlue border-glow">
+                        <i class="fas fa-user-circle text-6xl text-rickCyan animate-pulse-fast"></i>
+                    </div>
+                    <div class="text-center md:text-left">
+                        <h2 id="employeeName" class="text-[clamp(1.5rem,3vw,2.5rem)] font-bold text-rickBlue text-shadow-glow mb-2"></h2>
+                        <p id="totalHours" class="text-[clamp(1rem,2vw,1.5rem)] text-rickCyan text-shadow-glow-green mb-4"></p>
+                        <div class="flex flex-wrap gap-4 justify-center md:justify-start">
+                            <div class="glass-effect rounded-full px-4 py-2 border border-rickBlue">
+                                <span class="text-rickYellow">周1:</span> <span id="week1Hours" class="text-white"></span>
+                            </div>
+                            <div class="glass-effect rounded-full px-4 py-2 border border-rickBlue">
+                                <span class="text-rickYellow">周2:</span> <span id="week2Hours" class="text-white"></span>
+                            </div>
+                            <div class="glass-effect rounded-full px-4 py-2 border border-rickBlue">
+                                <span class="text-rickYellow">周3:</span> <span id="week3Hours" class="text-white"></span>
+                            </div>
+                            <div class="glass-effect rounded-full px-4 py-2 border border-rickBlue">
+                                <span class="text-rickYellow">周4:</span> <span id="week4Hours" class="text-white"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 工时图表 -->
+            <div class="glass-effect rounded-2xl p-8 mb-12 max-w-4xl mx-auto border border-rickBlue border-glow">
+                <h3 class="text-[clamp(1.25rem,2.5vw,2rem)] font-bold text-rickBlue text-shadow-glow mb-6 text-center">
+                    <i class="fas fa-chart-line mr-2"></i>每周工时趋势
+                </h3>
+                <div class="h-80">
+                    <canvas id="hoursChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- 员工列表区域 -->
+        <section class="glass-effect rounded-2xl p-8 mb-12 max-w-6xl mx-auto border border-rickBlue border-glow">
+            <h3 class="text-[clamp(1.25rem,2.5vw,2rem)] font-bold text-rickBlue text-shadow-glow mb-6 text-center">
+                <i class="fas fa-users mr-2"></i>所有员工列表
+            </h3>
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead>
+                        <tr class="border-b border-rickBlue">
+                            <th class="py-4 px-4 text-left text-rickCyan">序号</th>
+                            <th class="py-4 px-4 text-left text-rickCyan">姓名</th>
+                            <th class="py-4 px-4 text-center text-rickCyan">周1</th>
+                            <th class="py-4 px-4 text-center text-rickCyan">周2</th>
+                            <th class="py-4 px-4 text-center text-rickCyan">周3</th>
+                            <th class="py-4 px-4 text-center text-rickCyan">周4</th>
+                            <th class="py-4 px-4 text-center text-rickCyan">总计</th>
+                            <th class="py-4 px-4 text-center text-rickCyan">状态</th>
+                        </tr>
+                    </thead>
+                    <tbody id="employeeTable">
+                        <!-- 员工数据将通过JavaScript填充 -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <!-- 弹窗 -->
+    <div id="characterModal" class="fixed inset-0 flex items-center justify-center z-50 hidden">
+        <div class="absolute inset-0 bg-black/80 backdrop-blur-sm"></div>
+        <div class="relative bg-rickBlack border-4 border-rickBlue rounded-2xl p-8 max-w-lg w-full mx-4">
+            <button id="closeModal" class="absolute top-4 right-4 text-rickCyan hover:text-white text-2xl transition-colors">
+                <i class="fas fa-times"></i>
+            </button>
+            <div id="modalContent" class="flex flex-col items-center text-center">
+                <!-- 弹窗内容将通过JavaScript填充 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 页脚 -->
+    <footer class="text-center py-8 text-rickCyan/70">
+        <p>© 2025 Rick and Morty 工时追踪系统 | <i class="fas fa-portal-open text-rickBlue animate-pulse-fast"></i> 由 Rick Sanchez 科技提供支持</p>
+    </footer>
+
+    <!-- 员工数据 -->
+    <script>
+        const employees = [
+            {"name": "罗子皓", "hours": [41.0, 40.0, 40.0, 40.0], "total": 161.0},
+            {"name": "刘心奕", "hours": [40.0, 40.0, 40.0, 40.0], "total": 160.0},
+            {"name": "余颖", "hours": [40.0, 40.0, 40.0, 40.0], "total": 160.0},
+            {"name": "裴文华", "hours": [32.0, 40.0, 40.0, 40.0], "total": 152.0},
+            {"name": "苏捷", "hours": [43.0, 40.0, 40.0, 40.0], "total": 160.0},
+            {"name": "祝皓雯", "hours": [40.0, 40.0, 40.0, 40.0], "total": 160.0},
+            {"name": "陈锶蕙", "hours": [40.0, 40.0, 40.0, 40.0], "total": 160.0},
+            {"name": "易杨平", "hours": [40.0, 40.0, 40.0, 40.0], "total": 160.0},
+            {"name": "黎佳丽", "hours": [24.0, 40.0, 40.0, 40.0], "total": 144.0},
+            {"name": "李金璇", "hours": [43.0, 40.0, 40.0, 40.0], "total": 163.0},
+            {"name": "曾子荣", "hours": [42.0, 40.0, 40.0, 40.0], "total": 160.0},
+            {"name": "钟栋竞", "hours": [40.0, 40.0, 40.0, 40.0], "total": 160.0},
+            {"name": "游丽萍", "hours": [40.0, 40.0, 40.0, 40.0], "total": 160.0},
+            {"name": "陈佳鑫", "hours": [40.0, 40.0, 40.0, 40.0], "total": 160.0},
+            {"name": "庞芝婷", "hours": [40.0, 40.0, 40.0, 40.0], "total": 160.0},
+            {"name": "谢璇", "hours": [40.0, 40.0, 40.0, 40.0], "total": 160.0},
+            {"name": "庄泽楠", "hours": [8.0, 40.0, 40.0, 40.0], "total": 160.0},
+            {"name": "何江萍", "hours": [40.0, 40.0, 40.0, 40.0], "total": 160.0},
+            {"name": "郭天艳", "hours": [40.0, 40.0, 40.0, 40.0], "total": 160.0},
+            {"name": "曾睿璠", "hours": [40.0, 40.0, 40.0, 40.0], "total": 160.0},
+            {"name": "周双", "hours": [40.0, 40.0, 40.0, 40.0], "total": 160.0},
+            {"name": "田静", "hours": [32.0, 40.0, 40.0, 40.0], "total": 160.0},
+            {"name": "李琳", "hours": [40.0, 40.0, 40.0, 40.0], "total": 160.0},
+            {"name": "巫尚贤", "hours": [40.0, 40.0, 40.0, 40.0], "total": 160.0},
+            {"name": "苏诗画", "hours": [40.0, 40.0, 40.0, 40.0], "total": 160.0},
+            {"name": "初华旭", "hours": [40.0, 40.0, 40.0, 40.0], "total": 160.0},
+            {"name": "陈洁", "hours": [40.0, 40.0, 40.0, 40.0], "total": 160.0},
+            {"name": "张丫丫", "hours": [38.0, 40.0, 40.0, 40.0], "total": 160.0},
+            {"name": "涂逸", "hours": [40.0, 40.0, 40.0, 40.0], "total": 160.0},
+            {"name": "李洁怡", "hours": [40.0, 40.0, 40.0, 40.0], "total": 160.0},
+            {"name": "李凯盈", "hours": [40.0, 40.0, 40.0, 40.0], "total": 160.0},
+            {"name": "张秀莲", "hours": [0.0, 40.0, 40.0, 40.0], "total": 160.0},
+            {"name": "高刘香", "hours": [40.0, 40.0, 40.0, 40.0], "total": 160.0},
+            {"name": "周子涵", "hours": [40.0, 40.0, 40.0, 40.0], "total": 160.0},
+            {"name": "张梦", "hours": [40.0, 40.0, 40.0, 40.0], "total": 160.0},
+            {"name": "康篡娇", "hours": [40.0, 40.0, 40.0, 40.0], "total": 160.0},
+            {"name": "刘涛", "hours": [40.0, 40.0, 40.0, 40.0], "total": 160.0},
+            {"name": "丁童昕", "hours": [0.0, 40.0, 40.0, 40.0], "total": 160.0},
+            {"name": "何丽雅", "hours": [40.0, 40.0, 40.0, 40.0], "total": 160.0},
+            {"name": "尚兴越", "hours": [40.0, 40.0, 40.0, 40.0], "total": 160.0},
+            {"name": "施铖钰", "hours": [41.0, 40.0, 40.0, 40.0], "total": 160.0},
+            {"name": "陈蔚", "hours": [40.0, 40.0, 40.0, 40.0], "total": 160.0},
+            {"name": "苏琪", "hours": [40.0, 40.0, 40.0, 40.0], "total": 160.0},
+            {"name": "缪月", "hours": [40.0, 40.0, 40.0, 40.0], "total": 160.0},
+            {"name": "胡洛晨", "hours": [8.0, 40.0, 40.0, 40.0], "total": 160.0},
+            {"name": "李坤", "hours": [40.0, 40.0, 40.0, 40.0], "total": 160.0},
+            {"name": "黄诗淇", "hours": [40.0, 40.0, 40.0, 40.0], "total": 160.0},
+            {"name": "罗佳兰", "hours": [40.0, 40.0, 40.0, 40.0], "total": 160.0},
+            {"name": "钟玉", "hours": [41.0, 40.0, 40.0, 40.0], "total": 160.0},
+            {"name": "章云燕", "hours": [43.0, 40.0, 40.0, 40.0], "total": 160.0},
+            {"name": "毛姚钰子", "hours": [40.0, 40.0, 40.0, 40.0], "total": 160.0},
+            {"name": "方含雨", "hours": [40.0, 40.0, 40.0, 40.0], "total": 160.0},
+            {"name": "简行峰", "hours": [40.0, 40.0, 40.0, 40.0], "total": 160.0},
+            {"name": "柯均", "hours": [40.0, 40.0, 40.0, 40.0], "total": 160.0},
+            {"name": "胡杰婷", "hours": [40.0, 40.0, 40.0, 40.0], "total": 160.0},
+            {"name": "冶思杨", "hours": [40.0, 40.0, 40.0, 40.0], "total": 160.0},
+            {"name": "徐晓琪", "hours": [40.0, 40.0, 40.0, 40.0], "total": 160.0},
+            {"name": "董世杰", "hours": [40.0, 40.0, 40.0, 40.0], "total": 160.0}
+        ];
+
+        // 初始化页面
+        document.addEventListener('DOMContentLoaded', function() {
+            populateEmployeeTable();
+            setupEventListeners();
+        });
+
+        // 填充员工表格
+        function populateEmployeeTable() {
+            const tableBody = document.getElementById('employeeTable');
+            tableBody.innerHTML = '';
+
+            employees.forEach((employee, index) => {
+                const row = document.createElement('tr');
+                row.className = 'border-b border-rickBlue/30 hover:bg-white/5 transition-colors';
+                
+                // 确定状态和样式
+                const hasOver = employee.hours.some(hour => hour > 40);
+                const hasUnder = employee.hours.some(hour => hour < 40);
+                let status, statusClass;
+                
+                if (hasOver) {
+                    status = '加班';
+                    statusClass = 'text-rickBlue bg-rickBlue/10';
+                } else if (hasUnder) {
+                    status = '工时不足';
+                    statusClass = 'text-rickGreen bg-rickGreen/10';
+                } else {
+                    status = '正常';
+                    statusClass = 'text-rickYellow bg-rickYellow/10';
+                }
+                
+                row.innerHTML = `
+                    <td class="py-4 px-4">${index + 1}</td>
+                    <td class="py-4 px-4 font-medium">${employee.name}</td>
+                    <td class="py-4 px-4 text-center ${employee.hours[0] > 40 ? 'text-rickBlue' : employee.hours[0] < 40 ? 'text-rickGreen' : 'text-white'}">${employee.hours[0]}</td>
+                    <td class="py-4 px-4 text-center ${employee.hours[1] > 40 ? 'text-rickBlue' : employee.hours[1] < 40 ? 'text-rickGreen' : 'text-white'}">${employee.hours[1]}</td>
+                    <td class="py-4 px-4 text-center ${employee.hours[2] > 40 ? 'text-rickBlue' : employee.hours[2] < 40 ? 'text-rickGreen' : 'text-white'}">${employee.hours[2]}</td>
+                    <td class="py-4 px-4 text-center ${employee.hours[3] > 40 ? 'text-rickBlue' : employee.hours[3] < 40 ? 'text-rickGreen' : 'text-white'}">${employee.hours[3]}</td>
+                    <td class="py-4 px-4 text-center font-bold">${employee.total}</td>
+                    <td class="py-4 px-4 text-center">
+                        <span class="px-3 py-1 rounded-full text-sm font-medium ${statusClass}">${status}</span>
+                    </td>
+                `;
+                
+                tableBody.appendChild(row);
+            });
+        }
+
+        // 设置事件监听器
+        function setupEventListeners() {
+            const searchButton = document.getElementById('searchButton');
+            const nameInput = document.getElementById('nameInput');
+            const autocomplete = document.getElementById('autocomplete');
+            const closeModal = document.getElementById('closeModal');
+            const characterModal = document.getElementById('characterModal');
+
+            // 搜索按钮点击事件
+            searchButton.addEventListener('click', searchEmployee);
+            
+            // 输入框回车事件
+            nameInput.addEventListener('keyup', function(event) {
+                if (event.key === 'Enter') {
+                    searchEmployee();
+                } else {
+                    showAutocomplete();
+                }
+            });
+            
+            // 点击其他地方关闭自动完成
+            document.addEventListener('click', function(event) {
+                if (!nameInput.contains(event.target) && !autocomplete.contains(event.target)) {
+                    autocomplete.classList.add('hidden');
+                }
+            });
+            
+            // 关闭弹窗
+            closeModal.addEventListener('click', function() {
+                characterModal.classList.add('hidden');
+            });
+            
+            // 点击弹窗外部关闭
+            characterModal.addEventListener('click', function(event) {
+                if (event.target === characterModal) {
+                    characterModal.classList.add('hidden');
+                }
+            });
+        }
+
+        // 显示自动完成
+        function showAutocomplete() {
+            const input = document.getElementById('nameInput').value.toLowerCase();
+            const autocomplete = document.getElementById('autocomplete');
+            autocomplete.innerHTML = '';
+            
+            if (input.length < 1) {
+                autocomplete.classList.add('hidden');
+                return;
+            }
+            
+            const matches = employees.filter(employee => 
+                employee.name.toLowerCase().includes(input)
+            );
+            
+            if (matches.length === 0) {
+                autocomplete.classList.add('hidden');
+                return;
+            }
+            
+            matches.forEach(employee => {
+                const div = document.createElement('div');
+                div.className = 'px-4 py-2 hover:bg-rickBlue/20 cursor-pointer transition-colors';
+                div.textContent = employee.name;
+                div.addEventListener('click', function() {
+                    document.getElementById('nameInput').value = employee.name;
+                    autocomplete.classList.add('hidden');
+                    searchEmployee();
+                });
+                autocomplete.appendChild(div);
+            });
+            
+            autocomplete.classList.remove('hidden');
+        }
+
+        // 搜索员工
+        function searchEmployee() {
+            const nameInput = document.getElementById('nameInput');
+            const name = nameInput.value.trim();
+            
+            if (!name) {
+                alert('请输入员工姓名');
+                return;
+            }
+            
+            const employee = employees.find(emp => emp.name === name);
+            
+            if (employee) {
+                displayEmployee(employee);
+                showCharacterModal(employee);
+            } else {
+                alert('未找到该员工，请重新输入');
+            }
+        }
+
+        // 显示员工信息
+        function displayEmployee(employee) {
+            const resultSection = document.getElementById('resultSection');
+            resultSection.classList.remove('hidden');
+            
+            document.getElementById('employeeName').textContent = employee.name;
+            document.getElementById('totalHours').textContent = `总工时: ${employee.total} 小时`;
+            document.getElementById('week1Hours').textContent = employee.hours[0];
+            document.getElementById('week2Hours').textContent = employee.hours[1];
+            document.getElementById('week3Hours').textContent = employee.hours[2];
+            document.getElementById('week4Hours').textContent = employee.hours[3];
+            
+            createHoursChart(employee);
+        }
+
+        // 创建工时图表
+        function createHoursChart(employee) {
+            const ctx = document.getElementById('hoursChart').getContext('2d');
+            
+            // 销毁旧图表
+            if (window.hoursChart) {
+                window.hoursChart.destroy();
+            }
+            
+            // 设置图表颜色
+            const borderColor = '#00BFFF';
+            const backgroundColor = 'rgba(0, 191, 255, 0.2)';
+            const gridColor = 'rgba(0, 255, 255, 0.1)';
+            
+            window.hoursChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['第1周', '第2周', '第3周', '第4周'],
+                    datasets: [{
+                        label: '工时',
+                        data: employee.hours,
+                        borderColor: borderColor,
+                        backgroundColor: backgroundColor,
+                        borderWidth: 3,
+                        pointBackgroundColor: '#00FF00',
+                        pointBorderColor: '#000',
+                        pointBorderWidth: 2,
+                        pointRadius: 6,
+                        pointHoverRadius: 8,
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            min: 20,
+                            max: 50,
+                            grid: {
+                                color: gridColor
+                            },
+                            ticks: {
+                                color: '#00FFFF'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                color: gridColor
+                            },
+                            ticks: {
+                                color: '#00FFFF'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    animation: {
+                        duration: 2000,
+                        easing: 'easeOutQuart'
+                    }
+                }
+            });
+        }
+
+        // 显示角色弹窗
+        function showCharacterModal(employee) {
+            const modal = document.getElementById('characterModal');
+            const modalContent = document.getElementById('modalContent');
+            
+            // 判断显示哪个角色
+            const hasOver = employee.hours.some(hour => hour > 40);
+            const hasUnder = employee.hours.some(hour => hour < 40);
+            
+            let character, message, colorClass, glowClass, icon;
+            
+            if (hasOver) {
+                // Rick - 加班
+                character = 'Rick Sanchez';
+                message = 'Whoa! 你加班了！宇宙不在乎你的努力，但你的健康在乎！快去申请休息，否则你的大脑会像我的传送门一样崩溃！';
+                colorClass = 'text-rickBlue';
+                glowClass = 'text-shadow-glow';
+                icon = 'fas fa-flask';
+            } else if (hasUnder) {
+                // Morty - 工时不足
+                character = 'Morty Smith';
+                message = 'Oh jeez... 你的工时有点不足啊。别担心，我也经常逃避责任，但也许我们都该更努力一点？至少达到最低标准吧！';
+                colorClass = 'text-rickGreen';
+                glowClass = 'text-shadow-glow-green';
+                icon = 'fas fa-child';
+            } else {
+                // Terry - 正常
+                character = 'Terry';
+                message = '太棒了！你的工时完美达标！你就像我一样，是个普通人，但这没什么不好的！保持稳定，宇宙需要更多像你这样的稳定因素！';
+                colorClass = 'text-rickYellow';
+                glowClass = 'text-shadow-glow-yellow';
+                icon = 'fas fa-smile';
+            }
+            
+            modalContent.innerHTML = `
+                <div class="w-32 h-32 bg-rickBlack rounded-full flex items-center justify-center mb-6 border-4 ${colorClass} border-glow">
+                    <i class="${icon} text-6xl ${colorClass} animate-pulse-fast"></i>
+                </div>
+                <h3 class="text-2xl font-bold ${colorClass} ${glowClass} mb-4">${character}</h3>
+                <p class="text-lg mb-6">"${message}"</p>
+                <div class="w-full h-1 bg-gradient-to-r from-transparent via-${colorClass} to-transparent mb-6"></div>
+                <p class="text-white/70">${employee.name} 的工时统计：${employee.hours.join(', ')} 小时</p>
+            `;
+            
+            modal.classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
