@@ -3,39 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rick and Morty 工时查询系统</title>
+    <title>瑞克和莫蒂的工时宇宙</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
     
-    <!-- Rick and Morty 风格配置 -->
+    <!-- 配置Tailwind自定义颜色和字体 -->
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     colors: {
-                        rickBlue: '#00BFFF',
-                        rickCyan: '#00FFFF',
-                        rickGreen: '#00FF00',
-                        rickYellow: '#FFFF00',
-                        rickPurple: '#9932CC',
-                        rickBlack: '#000000',
-                        rickGray: '#282828',
+                        'rick-blue': '#00FFFF',
+                        'rick-green': '#39FF14',
+                        'rick-pink': '#FF6EC7',
+                        'rick-yellow': '#F9F002',
+                        'space-black': '#0B0E13',
+                        'space-gray': '#1A1F29',
+                        'space-light': '#2D3748'
                     },
                     fontFamily: {
-                        rick: ['"Get Schwifty"', 'cursive', 'sans-serif'],
-                        morty: ['"Alien Encounters"', 'sans-serif'],
+                        'rick': ['"Get Schwifty"', 'sans-serif', 'Arial'],
+                        'sans': ['Inter', 'system-ui', 'sans-serif']
                     },
                     animation: {
-                        'float': 'float 3s ease-in-out infinite',
-                        'pulse-fast': 'pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                        'bounce-slow': 'bounce 2s infinite',
-                        'spin-slow': 'spin 3s linear infinite',
+                        'float': 'float 6s ease-in-out infinite',
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'glow': 'glow 2s ease-in-out infinite alternate',
+                        'spin-slow': 'spin 15s linear infinite',
                     },
                     keyframes: {
                         float: {
                             '0%, 100%': { transform: 'translateY(0)' },
                             '50%': { transform: 'translateY(-10px)' },
+                        },
+                        glow: {
+                            '0%': { boxShadow: '0 0 5px rgba(0, 255, 255, 0.5), 0 0 10px rgba(0, 255, 255, 0.3)' },
+                            '100%': { boxShadow: '0 0 10px rgba(0, 255, 255, 0.8), 0 0 20px rgba(0, 255, 255, 0.5), 0 0 30px rgba(0, 255, 255, 0.3)' },
                         }
                     }
                 }
@@ -43,540 +47,639 @@
         }
     </script>
     
+    <!-- 自定义工具类 -->
     <style type="text/tailwindcss">
         @layer utilities {
-            .text-shadow-glow {
-                text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 15px #00BFFF, 0 0 20px #00BFFF, 0 0 25px #00BFFF;
+            .text-shadow-rick {
+                text-shadow: 0 0 5px rgba(0, 255, 255, 0.7), 0 0 10px rgba(0, 255, 255, 0.5);
             }
-            .text-shadow-glow-green {
-                text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 15px #00FF00, 0 0 20px #00FF00, 0 0 25px #00FF00;
+            .text-shadow-green {
+                text-shadow: 0 0 5px rgba(57, 255, 20, 0.7), 0 0 10px rgba(57, 255, 20, 0.5);
             }
-            .text-shadow-glow-yellow {
-                text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 15px #FFFF00, 0 0 20px #FFFF00, 0 0 25px #FFFF00;
+            .text-shadow-pink {
+                text-shadow: 0 0 5px rgba(255, 110, 199, 0.7), 0 0 10px rgba(255, 110, 199, 0.5);
             }
-            .text-shadow-glow-purple {
-                text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 15px #9932CC, 0 0 20px #9932CC, 0 0 25px #9932CC;
+            .bg-grid {
+                background-image: 
+                    linear-gradient(rgba(0, 255, 255, 0.1) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(0, 255, 255, 0.1) 1px, transparent 1px);
+                background-size: 20px 20px;
             }
-            .bg-rick-gradient {
-                background: linear-gradient(135deg, #000000 0%, #282828 50%, #000000 100%);
+            .glow-border {
+                box-shadow: 0 0 5px rgba(0, 255, 255, 0.5), 0 0 10px rgba(0, 255, 255, 0.3);
             }
-            .border-glow {
-                box-shadow: 0 0 5px #00BFFF, 0 0 10px #00BFFF;
+            .glow-border-green {
+                box-shadow: 0 0 5px rgba(57, 255, 20, 0.5), 0 0 10px rgba(57, 255, 20, 0.3);
             }
-            .border-glow-green {
-                box-shadow: 0 0 5px #00FF00, 0 0 10px #00FF00;
-            }
-            .border-glow-yellow {
-                box-shadow: 0 0 5px #FFFF00, 0 0 10px #FFFF00;
-            }
-            .rick-button {
-                transition: all 0.3s ease;
-            }
-            .rick-button:hover {
-                transform: scale(1.05);
-                box-shadow: 0 0 15px #00BFFF;
-            }
-            .morty-button {
-                transition: all 0.3s ease;
-            }
-            .morty-button:hover {
-                transform: scale(1.05);
-                box-shadow: 0 0 15px #00FF00;
-            }
-            .jerry-button {
-                transition: all 0.3s ease;
-            }
-            .jerry-button:hover {
-                transform: scale(1.05);
-                box-shadow: 0 0 15px #FFFF00;
-            }
-            .portal-bg {
-                background: radial-gradient(circle, #00BFFF 0%, #000000 70%);
-                animation: portal-pulse 2s infinite alternate;
-            }
-            @keyframes portal-pulse {
-                from { opacity: 0.8; transform: scale(1); }
-                to { opacity: 1; transform: scale(1.05); }
-            }
-            .character-image {
-                transition: all 0.3s ease;
-            }
-            .character-image:hover {
-                transform: scale(1.1) rotate(5deg);
-            }
-            .glass-effect {
-                background: rgba(255, 255, 255, 0.1);
-                backdrop-filter: blur(10px);
-                border: 1px solid rgba(255, 255, 255, 0.2);
+            .glow-border-pink {
+                box-shadow: 0 0 5px rgba(255, 110, 199, 0.5), 0 0 10px rgba(255, 110, 199, 0.3);
             }
         }
     </style>
     
-    <!-- 自定义字体 -->
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* 基础样式 */
+        body {
+            background-color: #0B0E13;
+            color: #ffffff;
+            overflow-x: hidden;
+        }
+        
+        /* 滚动条样式 */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #1A1F29;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #00FFFF;
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #39FF14;
+        }
+        
+        /* 字体加载 */
+        @font-face {
+            font-family: 'Get Schwifty';
+            src: url('https://fonts.cdnfonts.com/css/get-schwifty') format('woff2');
+            font-weight: normal;
+            font-style: normal;
+        }
+        
+        /* 动画效果 */
+        .animate-on-scroll {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+        }
+        
+        .animate-on-scroll.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        /* 角色弹窗背景模糊效果 */
+        .modal-backdrop {
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+        }
+        
+        /* 表格单元格动画 */
+        .table-cell {
+            transition: all 0.3s ease;
+        }
+        
+        /* 搜索框动画 */
+        .search-input:focus {
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.8), 0 0 20px rgba(0, 255, 255, 0.5);
+        }
+    </style>
 </head>
-<body class="bg-rick-gradient min-h-screen text-white font-sans">
-    <!-- 页面标题 -->
-    <header class="text-center py-8 relative overflow-hidden">
-        <div class="absolute top-0 left-0 w-full h-full portal-bg opacity-20 z-0"></div>
-        <h1 class="text-[clamp(2rem,5vw,4rem)] font-bold text-rickBlue text-shadow-glow mb-4 relative z-10">
-            <i class="fas fa-portal-open mr-4 animate-spin-slow"></i>
-            Rick and Morty 工时追踪器
-            <i class="fas fa-portal-open ml-4 animate-spin-slow"></i>
-        </h1>
-        <p class="text-[clamp(1rem,2vw,1.25rem)] text-rickCyan text-shadow-glow-green max-w-3xl mx-auto relative z-10">
-            输入你的名字，探索你的工时宇宙！
-        </p>
-    </header>
+<body class="bg-space-black bg-grid min-h-screen">
+    <!-- 星星背景动画 -->
+    <div id="stars" class="fixed inset-0 pointer-events-none z-0"></div>
 
-    <!-- 主要内容区域 -->
-    <main class="container mx-auto px-4 py-8 relative">
-        <!-- 查询区域 -->
-        <section class="glass-effect rounded-2xl p-8 mb-12 max-w-3xl mx-auto border border-rickBlue border-glow">
-            <div class="flex flex-col md:flex-row gap-4 items-center justify-center">
-                <div class="relative w-full md:w-3/4">
-                    <input 
-                        type="text" 
-                        id="nameInput" 
-                        placeholder="输入你的名字..." 
-                        class="w-full bg-rickBlack/50 border-2 border-rickBlue rounded-full px-6 py-4 text-white text-lg placeholder-rickCyan/70 focus:outline-none focus:border-rickCyan focus:border-glow transition-all"
-                    >
-                    <i class="fas fa-search absolute right-4 top-1/2 transform -translate-y-1/2 text-rickCyan"></i>
+    <!-- 顶部导航 -->
+    <header class="relative z-10 border-b border-rick-blue/30 bg-space-black/80 backdrop-blur-sm sticky top-0">
+        <div class="container mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center">
+            <div class="flex items-center mb-4 md:mb-0">
+                <div class="w-10 h-10 rounded-full bg-rick-blue/20 animate-pulse-slow mr-3 flex items-center justify-center">
+                    <i class="fa fa-clock-o text-rick-blue text-xl"></i>
                 </div>
-                <button 
-                    id="searchButton" 
-                    class="rick-button bg-rickBlue hover:bg-rickCyan text-rickBlack font-bold py-4 px-8 rounded-full text-lg transition-all"
-                >
-                    <i class="fas fa-search mr-2"></i>查询工时
-                </button>
+                <h1 class="text-2xl md:text-3xl font-rick text-rick-blue text-shadow-rick">
+                    瑞克的工时宇宙
+                </h1>
             </div>
             
-            <!-- 自动完成下拉菜单 -->
-            <div id="autocomplete" class="hidden absolute bg-rickBlack/90 border-2 border-rickBlue rounded-lg mt-2 w-[calc(75%-2rem)] max-h-60 overflow-y-auto z-50"></div>
-        </section>
+            <div class="flex items-center space-x-4">
+                <div class="relative hidden md:block">
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-3">
+                        <i class="fa fa-search text-rick-blue/70"></i>
+                    </span>
+                    <input type="text" id="globalSearch" placeholder="在全宇宙搜索..." 
+                           class="bg-space-gray border border-rick-blue/30 rounded-full py-2 pl-10 pr-4 text-sm focus:outline-none focus:border-rick-blue transition-all w-48 lg:w-64 text-white">
+                </div>
+                
+                <button class="bg-space-gray hover:bg-space-light border border-rick-green/50 text-rick-green py-2 px-4 rounded-full text-sm transition-all hover:glow-border-green flex items-center">
+                    <i class="fa fa-refresh mr-2"></i> 重置
+                </button>
+            </div>
+        </div>
+    </header>
 
-        <!-- 结果显示区域 -->
-        <section id="resultSection" class="hidden">
-            <!-- 员工信息卡片 -->
-            <div class="glass-effect rounded-2xl p-8 mb-12 max-w-4xl mx-auto border border-rickBlue border-glow">
-                <div class="flex flex-col md:flex-row items-center gap-8">
-                    <div class="w-32 h-32 bg-rickBlack rounded-full flex items-center justify-center overflow-hidden border-4 border-rickBlue border-glow">
-                        <i class="fas fa-user-circle text-6xl text-rickCyan animate-pulse-fast"></i>
-                    </div>
-                    <div class="text-center md:text-left">
-                        <h2 id="employeeName" class="text-[clamp(1.5rem,3vw,2.5rem)] font-bold text-rickBlue text-shadow-glow mb-2"></h2>
-                        <p id="totalHours" class="text-[clamp(1rem,2vw,1.5rem)] text-rickCyan text-shadow-glow-green mb-4"></p>
-                        <div class="flex flex-wrap gap-4 justify-center md:justify-start">
-                            <div class="glass-effect rounded-full px-4 py-2 border border-rickBlue">
-                                <span class="text-rickYellow">周1:</span> <span id="week1Hours" class="text-white"></span>
-                            </div>
-                            <div class="glass-effect rounded-full px-4 py-2 border border-rickBlue">
-                                <span class="text-rickYellow">周2:</span> <span id="week2Hours" class="text-white"></span>
-                            </div>
-                            <div class="glass-effect rounded-full px-4 py-2 border border-rickBlue">
-                                <span class="text-rickYellow">周3:</span> <span id="week3Hours" class="text-white"></span>
-                            </div>
-                            <div class="glass-effect rounded-full px-4 py-2 border border-rickBlue">
-                                <span class="text-rickYellow">周4:</span> <span id="week4Hours" class="text-white"></span>
-                            </div>
-                        </div>
-                    </div>
+    <main class="container mx-auto px-4 py-8 relative z-10">
+        <!-- 页面标题和简介 -->
+        <section class="mb-12 animate-on-scroll">
+            <div class="text-center max-w-3xl mx-auto">
+                <h2 class="text-[clamp(1.8rem,5vw,3rem)] font-rick text-rick-green text-shadow-green mb-4">
+                    员工工时查询系统 3000
+                </h2>
+                <p class="text-gray-300 text-lg mb-6">
+                    别管什么次元了，先看看你的工时达不达标吧！这个宇宙的标准可是168小时/月，别让瑞克失望。
+                </p>
+                
+                <!-- 移动端搜索框 -->
+                <div class="relative md:hidden mb-6">
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-3">
+                        <i class="fa fa-search text-rick-blue/70"></i>
+                    </span>
+                    <input type="text" id="mobileSearch" placeholder="搜索员工..." 
+                           class="bg-space-gray border border-rick-blue/30 rounded-full py-2 pl-10 pr-4 text-sm focus:outline-none focus:border-rick-blue transition-all w-full text-white">
                 </div>
             </div>
+        </section>
 
-            <!-- 工时图表 -->
-            <div class="glass-effect rounded-2xl p-8 mb-12 max-w-4xl mx-auto border border-rickBlue border-glow">
-                <h3 class="text-[clamp(1.25rem,2.5vw,2rem)] font-bold text-rickBlue text-shadow-glow mb-6 text-center">
-                    <i class="fas fa-chart-line mr-2"></i>每周工时趋势
+        <!-- 数据概览和图表 -->
+        <section class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-12">
+            <!-- 统计卡片 -->
+            <div class="lg:col-span-1 space-y-6">
+                <div class="bg-space-gray rounded-xl p-6 border border-rick-blue/20 animate-on-scroll glow-border hover:scale-[1.02] transition-transform">
+                    <h3 class="text-rick-blue text-xl mb-4 flex items-center">
+                        <i class="fa fa-users mr-2"></i> 员工总数
+                    </h3>
+                    <p class="text-4xl font-bold text-white" id="totalEmployees">0</p>
+                </div>
+                
+                <div class="bg-space-gray rounded-xl p-6 border border-rick-green/20 animate-on-scroll glow-border-green hover:scale-[1.02] transition-transform" style="animation-delay: 0.2s">
+                    <h3 class="text-rick-green text-xl mb-4 flex items-center">
+                        <i class="fa fa-check-circle mr-2"></i> 工时达标
+                    </h3>
+                    <p class="text-4xl font-bold text-white" id="达标员工数">0</p>
+                </div>
+                
+                <div class="bg-space-gray rounded-xl p-6 border border-rick-pink/20 animate-on-scroll glow-border-pink hover:scale-[1.02] transition-transform" style="animation-delay: 0.4s">
+                    <h3 class="text-rick-pink text-xl mb-4 flex items-center">
+                        <i class="fa fa-exclamation-triangle mr-2"></i> 工时异常
+                    </h3>
+                    <p class="text-4xl font-bold text-white" id="异常员工数">0</p>
+                </div>
+            </div>
+            
+            <!-- 图表 -->
+            <div class="lg:col-span-2 bg-space-gray rounded-xl p-6 border border-rick-blue/20 animate-on-scroll">
+                <h3 class="text-rick-blue text-xl mb-6 flex items-center">
+                    <i class="fa fa-bar-chart mr-2"></i> 工时分布统计
                 </h3>
                 <div class="h-80">
-                    <canvas id="hoursChart"></canvas>
+                    <canvas id="workHoursChart"></canvas>
                 </div>
             </div>
         </section>
 
-        <!-- 员工列表区域 -->
-        <section class="glass-effect rounded-2xl p-8 mb-12 max-w-6xl mx-auto border border-rickBlue border-glow">
-            <h3 class="text-[clamp(1.25rem,2.5vw,2rem)] font-bold text-rickBlue text-shadow-glow mb-6 text-center">
-                <i class="fas fa-users mr-2"></i>所有员工列表
-            </h3>
-            <div class="overflow-x-auto">
-                <table class="w-full">
-                    <thead>
-                        <tr class="border-b border-rickBlue">
-                            <th class="py-4 px-4 text-left text-rickCyan">序号</th>
-                            <th class="py-4 px-4 text-left text-rickCyan">姓名</th>
-                            <th class="py-4 px-4 text-center text-rickCyan">周1</th>
-                            <th class="py-4 px-4 text-center text-rickCyan">周2</th>
-                            <th class="py-4 px-4 text-center text-rickCyan">周3</th>
-                            <th class="py-4 px-4 text-center text-rickCyan">周4</th>
-                            <th class="py-4 px-4 text-center text-rickCyan">总计</th>
-                            <th class="py-4 px-4 text-center text-rickCyan">状态</th>
-                        </tr>
-                    </thead>
-                    <tbody id="employeeTable">
-                        <!-- 员工数据将通过JavaScript填充 -->
-                    </tbody>
-                </table>
+        <!-- 员工工时表格 -->
+        <section class="mb-16 animate-on-scroll">
+            <div class="bg-space-gray rounded-xl overflow-hidden border border-rick-blue/20">
+                <div class="p-6 border-b border-rick-blue/20">
+                    <h3 class="text-rick-blue text-xl flex items-center">
+                        <i class="fa fa-table mr-2"></i> 员工工时数据
+                    </h3>
+                    <p class="text-gray-400 mt-1">点击员工姓名查看详情和评价</p>
+                </div>
+                
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead>
+                            <tr class="bg-space-light">
+                                <th class="py-4 px-6 text-left text-rick-green">员工姓名</th>
+                                <th class="py-4 px-6 text-left text-rick-green">8月1日</th>
+                                <th class="py-4 px-6 text-left text-rick-green">8/4-8/8</th>
+                                <th class="py-4 px-6 text-left text-rick-green">8/11-8/15</th>
+                                <th class="py-4 px-6 text-left text-rick-green">8/18-8/22</th>
+                                <th class="py-4 px-6 text-left text-rick-green">8/25-8/29</th>
+                                <th class="py-4 px-6 text-left text-rick-green">总计</th>
+                                <th class="py-4 px-6 text-left text-rick-green">状态</th>
+                            </tr>
+                        </thead>
+                        <tbody id="employeesTableBody">
+                            <!-- 表格内容将通过JavaScript动态生成 -->
+                            <tr>
+                                <td colspan="8" class="py-8 text-center text-gray-400">
+                                    <div class="flex flex-col items-center">
+                                        <div class="w-16 h-16 border-4 border-dashed border-rick-blue/30 rounded-full animate-spin-slow mb-4"></div>
+                                        加载员工数据中...
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </section>
     </main>
 
-    <!-- 弹窗 -->
-    <div id="characterModal" class="fixed inset-0 flex items-center justify-center z-50 hidden">
-        <div class="absolute inset-0 bg-black/80 backdrop-blur-sm"></div>
-        <div class="relative bg-rickBlack border-4 border-rickBlue rounded-2xl p-8 max-w-lg w-full mx-4">
-            <button id="closeModal" class="absolute top-4 right-4 text-rickCyan hover:text-white text-2xl transition-colors">
-                <i class="fas fa-times"></i>
-            </button>
-            <div id="modalContent" class="flex flex-col items-center text-center">
-                <!-- 弹窗内容将通过JavaScript填充 -->
+    <!-- 页脚 -->
+    <footer class="bg-space-gray border-t border-rick-blue/30 py-6 relative z-10">
+        <div class="container mx-auto px-4 text-center">
+            <p class="text-gray-400 text-sm">
+                瑞克的工时宇宙 &copy; 2025 | 别试图理解它，只管使用它就好
+            </p>
+            <p class="text-rick-blue/70 text-xs mt-2">
+                注意：这个系统可能会在任何时候跳转到其他次元
+            </p>
+        </div>
+    </footer>
+
+    <!-- 角色弹窗 -->
+    <div id="characterModal" class="fixed inset-0 z-50 hidden modal-backdrop">
+        <div class="absolute inset-0 flex items-center justify-center p-4">
+            <div class="bg-space-black border-2 border-rick-blue rounded-xl max-w-3xl w-full max-h-[90vh] overflow-hidden animate-glow">
+                <div class="relative">
+                    <!-- 角色图片 -->
+                    <div class="h-64 md:h-80 bg-space-gray">
+                        <img id="characterImage" src="" alt="" class="w-full h-full object-cover">
+                    </div>
+                    
+                    <!-- 关闭按钮 -->
+                    <button id="closeModal" class="absolute top-4 right-4 w-10 h-10 rounded-full bg-space-black/80 flex items-center justify-center text-white hover:text-rick-blue transition-colors z-10">
+                        <i class="fa fa-times text-xl"></i>
+                    </button>
+                </div>
+                
+                <div class="p-6">
+                    <h3 id="characterName" class="text-2xl font-rick text-rick-blue text-shadow-rick mb-4"></h3>
+                    <div class="flex items-center mb-6">
+                        <span id="employeeName" class="text-xl font-bold text-white"></span>
+                        <span id="totalHoursDisplay" class="ml-4 px-3 py-1 rounded-full text-sm"></span>
+                    </div>
+                    <p id="characterQuote" class="text-gray-300 text-lg leading-relaxed"></p>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- 页脚 -->
-    <footer class="text-center py-8 text-rickCyan/70">
-        <p>© 2025 Rick and Morty 工时追踪系统 | <i class="fas fa-portal-open text-rickBlue animate-pulse-fast"></i> 由 Rick Sanchez 科技提供支持</p>
-    </footer>
-
-    <!-- 员工数据 -->
     <script>
+        // 员工数据
         const employees = [
-            {"name": "罗子皓", "hours": [45.0, 40.0, 40.0, 40.0]},
-            {"name": "刘心奕", "hours": [40.0, 40.0, 40.0, 40.0], "total": 160.0},
-            {"name": "余颖", "hours": [32.0, 40.0, 40.0, 40.0], "total": 160.0},
-            {"name": "裴文华", "hours": [32.0, 40.0, 40.0, 40.0], "total": 152.0},
-            {"name": "苏捷", "hours": [45.0, 40.0, 40.0, 40.0], "total": 160.0},
-            {"name": "祝皓雯", "hours": [40.0, 40.0, 40.0, 40.0], "total": 160.0},
-            {"name": "陈锶蕙", "hours": [43.0, 40.0, 40.0, 40.0], "total": 160.0},
-            {"name": "易杨平", "hours": [43.0, 40.0, 40.0, 40.0], "total": 160.0},
-            {"name": "黎佳丽", "hours": [24.0, 40.0, 40.0, 40.0], "total": 144.0},
-            {"name": "李金璇", "hours": [46.0, 40.0, 40.0, 40.0], "total": 163.0},
-            {"name": "曾子荣", "hours": [45.0, 40.0, 40.0, 40.0], "total": 160.0},
-            {"name": "钟栋竞", "hours": [40.0, 40.0, 40.0, 40.0], "total": 160.0},
-            {"name": "游丽萍", "hours": [40.0, 40.0, 40.0, 40.0], "total": 160.0},
-            {"name": "陈佳鑫", "hours": [40.0, 40.0, 40.0, 40.0], "total": 160.0},
-            {"name": "庞芝婷", "hours": [42.0, 40.0, 40.0, 40.0], "total": 160.0},
-            {"name": "谢璇", "hours": [40.0, 40.0, 40.0, 40.0], "total": 160.0},
-            {"name": "庄泽楠", "hours": [9.0, 40.0, 40.0, 40.0], "total": 160.0},
-            {"name": "何江萍", "hours": [40.0, 40.0, 40.0, 40.0], "total": 160.0},
-            {"name": "郭天艳", "hours": [40.0, 40.0, 40.0, 40.0], "total": 160.0},
-            {"name": "曾睿璠", "hours": [40.0, 40.0, 40.0, 40.0], "total": 160.0},
-            {"name": "周双", "hours": [40.0, 40.0, 40.0, 40.0], "total": 160.0},
-            {"name": "田静", "hours": [36.0, 40.0, 40.0, 40.0], "total": 160.0},
-            {"name": "李琳", "hours": [40.0, 40.0, 40.0, 40.0], "total": 160.0},
-            {"name": "巫尚贤", "hours": [40.0, 40.0, 40.0, 40.0], "total": 160.0},
-            {"name": "苏诗画", "hours": [40.0, 40.0, 40.0, 40.0], "total": 160.0},
-            {"name": "初华旭", "hours": [40.0, 40.0, 40.0, 40.0], "total": 160.0},
-            {"name": "陈洁", "hours": [40.0, 40.0, 40.0, 40.0], "total": 160.0},
-            {"name": "张丫丫", "hours": [38.0, 40.0, 40.0, 40.0], "total": 160.0},
-            {"name": "涂逸", "hours": [40.0, 40.0, 40.0, 40.0], "total": 160.0},
-            {"name": "李洁怡", "hours": [40.0, 40.0, 40.0, 40.0], "total": 160.0},
-            {"name": "李凯盈", "hours": [40.0, 40.0, 40.0, 40.0], "total": 160.0},
-            {"name": "张秀莲", "hours": [0.0, 40.0, 40.0, 40.0], "total": 160.0},
-            {"name": "高刘香", "hours": [43.0, 40.0, 40.0, 40.0], "total": 160.0},
-            {"name": "周子涵", "hours": [42.0, 40.0, 40.0, 40.0], "total": 160.0},
-            {"name": "张梦", "hours": [40.0, 40.0, 40.0, 40.0], "total": 160.0},
-            {"name": "康篡娇", "hours": [40.0, 40.0, 40.0, 40.0], "total": 160.0},
-            {"name": "刘涛", "hours": [40.0, 40.0, 40.0, 40.0], "total": 160.0},
-            {"name": "丁童昕", "hours": [0.0, 40.0, 40.0, 40.0], "total": 160.0},
-            {"name": "何丽雅", "hours": [40.0, 40.0, 40.0, 40.0], "total": 160.0},
-            {"name": "尚兴越", "hours": [40.0, 40.0, 40.0, 40.0], "total": 160.0},
-            {"name": "施铖钰", "hours": [44.0, 40.0, 40.0, 40.0], "total": 160.0},
-            {"name": "陈蔚", "hours": [40.0, 40.0, 40.0, 40.0], "total": 160.0},
-            {"name": "苏琪", "hours": [40.0, 40.0, 40.0, 40.0], "total": 160.0},
-            {"name": "缪月", "hours": [40.0, 40.0, 40.0, 40.0], "total": 160.0},
-            {"name": "胡洛晨", "hours": [8.0, 40.0, 40.0, 40.0], "total": 160.0},
-            {"name": "李坤", "hours": [41.0, 40.0, 40.0, 40.0], "total": 160.0},
-            {"name": "黄诗淇", "hours": [40.0, 40.0, 40.0, 40.0], "total": 160.0},
-            {"name": "罗佳兰", "hours": [40.0, 40.0, 40.0, 40.0], "total": 160.0},
-            {"name": "钟玉", "hours": [44.0, 40.0, 40.0, 40.0], "total": 160.0},
-            {"name": "章云燕", "hours": [46.0, 40.0, 40.0, 40.0], "total": 160.0},
-            {"name": "毛姚钰子", "hours": [43.0, 40.0, 40.0, 40.0], "total": 160.0},
-            {"name": "方含雨", "hours": [40.0, 40.0, 40.0, 40.0], "total": 160.0},
-            {"name": "简行峰", "hours": [42.0, 40.0, 40.0, 40.0], "total": 160.0},
-            {"name": "柯均", "hours": [40.0, 40.0, 40.0, 40.0], "total": 160.0},
-            {"name": "胡杰婷", "hours": [40.0, 40.0, 40.0, 40.0], "total": 160.0},
-            {"name": "冶思杨", "hours": [40.0, 40.0, 40.0, 40.0], "total": 160.0},
-            {"name": "徐晓琪", "hours": [40.0, 40.0, 40.0, 40.0], "total": 160.0},
-            {"name": "董世杰", "hours": [40.0, 40.0, 40.0, 40.0], "total": 160.0}
+            {name: "罗子皓", hours: [8, 45, 40, 40, 40], total: 173},
+            {name: "刘心奕", hours: [8, 40, 40, 40, 40], total: 168},
+            {name: "余颖", hours: [8, 40, 40, 40, 40], total: 168},
+            {name: "裴文华", hours: [8, 32, 40, 40, 40], total: 160},
+            {name: "苏捷", hours: [8, 45, 40, 40, 40], total: 173},
+            {name: "祝皓雯", hours: [8, 40, 40, 40, 40], total: 168},
+            {name: "陈锶蕙", hours: [0, 43, 40, 40, 40], total: 163},
+            {name: "易杨平", hours: [8, 43, 40, 40, 40], total: 171},
+            {name: "黎佳丽", hours: [0, 24, 40, 40, 40], total: 144},
+            {name: "李金璇", hours: [8, 46, 40, 40, 40], total: 174},
+            {name: "曾子荣", hours: [0, 45, 40, 40, 40], total: 165},
+            {name: "钟栋竞", hours: [8, 40, 40, 40, 40], total: 168},
+            {name: "游丽萍", hours: [8, 40, 40, 40, 40], total: 168},
+            {name: "陈佳鑫", hours: [8, 40, 40, 40, 40], total: 168},
+            {name: "庞芝婷", hours: [8, 42, 40, 40, 40], total: 170},
+            {name: "谢璇", hours: [8, 40, 40, 40, 40], total: 168},
+            {name: "庄泽楠", hours: [8, 9, 16, 40, 40], total: 113},
+            {name: "何江萍", hours: [8, 40, 40, 40, 40], total: 168},
+            {name: "郭天艳", hours: [8, 40, 40, 40, 40], total: 168},
+            {name: "曾睿璠", hours: [8, 40, 40, 40, 40], total: 168},
+            {name: "周双", hours: [8, 40, 40, 40, 40], total: 168},
+            {name: "田静", hours: [8, 36, 40, 40, 40], total: 164},
+            {name: "李琳", hours: [0, 40, 40, 40, 40], total: 160},
+            {name: "巫尚贤", hours: [8, 40, 40, 40, 40], total: 168},
+            {name: "苏诗画", hours: [8, 40, 40, 40, 40], total: 168},
+            {name: "初华旭", hours: [8, 40, 40, 40, 40], total: 168},
+            {name: "陈洁", hours: [8, 40, 40, 40, 40], total: 168},
+            {name: "张丫丫", hours: [8, 38, 40, 40, 40], total: 166},
+            {name: "涂逸", hours: [8, 40, 40, 40, 40], total: 168},
+            {name: "李洁怡", hours: [8, 40, 40, 40, 40], total: 168},
+            {name: "李凯盈", hours: [8, 40, 40, 40, 40], total: 168},
+            {name: "张秀莲", hours: [8, 0, 0, 0, 0], total: 8},
+            {name: "高刘香", hours: [8, 43, 40, 40, 40], total: 171},
+            {name: "周子涵", hours: [8, 42, 40, 40, 40], total: 170},
+            {name: "张梦", hours: [8, 40, 40, 40, 40], total: 168},
+            {name: "康篡娇", hours: [8, 40, 40, 40, 40], total: 168},
+            {name: "刘涛", hours: [8, 40, 40, 40, 40], total: 168},
+            {name: "丁童昕", hours: [8, 0, 0, 0, 0], total: 8},
+            {name: "何丽雅", hours: [8, 40, 40, 40, 40], total: 168},
+            {name: "尚兴越", hours: [8, 40, 40, 40, 40], total: 168},
+            {name: "施铖钰", hours: [8, 44, 40, 40, 40], total: 172},
+            {name: "陈蔚", hours: [0, 40, 40, 40, 40], total: 160},
+            {name: "苏琪", hours: [8, 40, 40, 40, 40], total: 168},
+            {name: "缪月", hours: [8, 40, 40, 40, 40], total: 168},
+            {name: "胡洛晨", hours: [8, 8, 40, 40, 40], total: 136},
+            {name: "李坤", hours: [8, 41, 40, 40, 40], total: 169},
+            {name: "黄诗淇", hours: [8, 40, 40, 40, 40], total: 168},
+            {name: "罗佳兰", hours: [8, 40, 40, 40, 40], total: 168},
+            {name: "钟玉", hours: [8, 44, 40, 40, 40], total: 172},
+            {name: "章云燕", hours: [8, 46, 40, 40, 40], total: 174},
+            {name: "毛姚钰子", hours: [8, 43, 40, 40, 40], total: 171},
+            {name: "方含雨", hours: [8, 40, 40, 40, 40], total: 168},
+            {name: "简行峰", hours: [8, 42, 40, 40, 40], total: 170},
+            {name: "柯均", hours: [8, 40, 40, 40, 40], total: 168},
+            {name: "胡杰婷", hours: [8, 40, 40, 40, 40], total: 168},
+            {name: "冶思杨", hours: [8, 40, 40, 40, 40], total: 168},
+            {name: "徐晓琪", hours: [8, 40, 40, 40, 40], total: 168},
+            {name: "董世杰", hours: [8, 40, 40, 40, 40], total: 168}
         ];
 
-        // 初始化页面
-        document.addEventListener('DOMContentLoaded', function() {
-            populateEmployeeTable();
-            setupEventListeners();
-        });
+        // DOM元素
+        const employeesTableBody = document.getElementById('employeesTableBody');
+        const characterModal = document.getElementById('characterModal');
+        const closeModal = document.getElementById('closeModal');
+        const characterImage = document.getElementById('characterImage');
+        const characterName = document.getElementById('characterName');
+        const characterQuote = document.getElementById('characterQuote');
+        const employeeName = document.getElementById('employeeName');
+        const totalHoursDisplay = document.getElementById('totalHoursDisplay');
+        const totalEmployeesEl = document.getElementById('totalEmployees');
+        const 达标员工数El = document.getElementById('达标员工数');
+        const 异常员工数El = document.getElementById('异常员工数');
+        const globalSearch = document.getElementById('globalSearch');
+        const mobileSearch = document.getElementById('mobileSearch');
 
-        // 填充员工表格
-        function populateEmployeeTable() {
-            const tableBody = document.getElementById('employeeTable');
-            tableBody.innerHTML = '';
+        // 初始化星星背景
+        function initStars() {
+            const stars = document.getElementById('stars');
+            const count = 150;
+            
+            for (let i = 0; i < count; i++) {
+                const star = document.createElement('div');
+                const size = Math.random() * 3;
+                
+                star.style.position = 'absolute';
+                star.style.width = `${size}px`;
+                star.style.height = `${size}px`;
+                star.style.backgroundColor = i % 5 === 0 ? '#00FFFF' : i % 7 === 0 ? '#39FF14' : 'white';
+                star.style.borderRadius = '50%';
+                star.style.left = `${Math.random() * 100}%`;
+                star.style.top = `${Math.random() * 100}%`;
+                star.style.opacity = Math.random();
+                star.style.animation = `pulse ${3 + Math.random() * 7}s infinite`;
+                star.style.animationDelay = `${Math.random() * 5}s`;
+                
+                stars.appendChild(star);
+            }
+        }
 
-            employees.forEach((employee, index) => {
+        // 渲染员工表格
+        function renderEmployees(employeesList = employees) {
+            employeesTableBody.innerHTML = '';
+            
+            if (employeesList.length === 0) {
+                employeesTableBody.innerHTML = `
+                    <tr>
+                        <td colspan="8" class="py-8 text-center text-gray-400">
+                            <div class="flex flex-col items-center">
+                                <i class="fa fa-search-minus text-4xl text-rick-pink mb-4"></i>
+                                没有找到匹配的员工
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            employeesList.forEach((employee, index) => {
                 const row = document.createElement('tr');
-                row.className = 'border-b border-rickBlue/30 hover:bg-white/5 transition-colors';
+                row.className = index % 2 === 0 ? 'bg-space-black' : 'bg-space-gray/50';
+                row.classList.add('hover:bg-space-light/50', 'transition-colors');
                 
-                // 确定状态和样式
-                const hasOver = employee.hours.some(hour => hour > 40);
-                const hasUnder = employee.hours.some(hour => hour < 40);
-                let status, statusClass;
+                // 确定工时状态
+                let statusClass = '';
+                let statusText = '';
                 
-                if (hasOver) {
-                    status = '加班';
-                    statusClass = 'text-rickBlue bg-rickBlue/10';
-                } else if (hasUnder) {
-                    status = '工时不足';
-                    statusClass = 'text-rickGreen bg-rickGreen/10';
+                if (employee.total < 168) {
+                    statusClass = 'text-red-400 bg-red-900/20';
+                    statusText = '工时不足';
+                } else if (employee.total === 168) {
+                    statusClass = 'text-rick-green bg-green-900/20';
+                    statusText = '工时正常';
                 } else {
-                    status = '正常';
-                    statusClass = 'text-rickYellow bg-rickYellow/10';
+                    statusClass = 'text-rick-pink bg-pink-900/20';
+                    statusText = '已加班';
                 }
                 
+                // 构建表格行内容
                 row.innerHTML = `
-                    <td class="py-4 px-4">${index + 1}</td>
-                    <td class="py-4 px-4 font-medium">${employee.name}</td>
-                    <td class="py-4 px-4 text-center ${employee.hours[0] > 40 ? 'text-rickBlue' : employee.hours[0] < 40 ? 'text-rickGreen' : 'text-white'}">${employee.hours[0]}</td>
-                    <td class="py-4 px-4 text-center ${employee.hours[1] > 40 ? 'text-rickBlue' : employee.hours[1] < 40 ? 'text-rickGreen' : 'text-white'}">${employee.hours[1]}</td>
-                    <td class="py-4 px-4 text-center ${employee.hours[2] > 40 ? 'text-rickBlue' : employee.hours[2] < 40 ? 'text-rickGreen' : 'text-white'}">${employee.hours[2]}</td>
-                    <td class="py-4 px-4 text-center ${employee.hours[3] > 40 ? 'text-rickBlue' : employee.hours[3] < 40 ? 'text-rickGreen' : 'text-white'}">${employee.hours[3]}</td>
-                    <td class="py-4 px-4 text-center font-bold">${employee.total}</td>
-                    <td class="py-4 px-4 text-center">
-                        <span class="px-3 py-1 rounded-full text-sm font-medium ${statusClass}">${status}</span>
+                    <td class="py-4 px-6 font-medium">
+                        <button class="employee-detail text-rick-blue hover:text-rick-green transition-colors flex items-center" 
+                                data-name="${employee.name}" 
+                                data-total="${employee.total}">
+                            ${employee.name}
+                            <i class="fa fa-arrow-right ml-2 text-xs"></i>
+                        </button>
+                    </td>
+                    ${employee.hours.map(hour => `
+                        <td class="py-4 px-6 table-cell ${getHourClass(hour)}">
+                            ${hour}
+                        </td>
+                    `).join('')}
+                    <td class="py-4 px-6 font-bold ${employee.total < 168 ? 'text-red-400' : employee.total > 168 ? 'text-rick-pink' : 'text-rick-green'}">
+                        ${employee.total}
+                    </td>
+                    <td class="py-4 px-6">
+                        <span class="px-3 py-1 rounded-full text-xs font-medium ${statusClass}">
+                            ${statusText}
+                        </span>
                     </td>
                 `;
                 
-                tableBody.appendChild(row);
-            });
-        }
-
-        // 设置事件监听器
-        function setupEventListeners() {
-            const searchButton = document.getElementById('searchButton');
-            const nameInput = document.getElementById('nameInput');
-            const autocomplete = document.getElementById('autocomplete');
-            const closeModal = document.getElementById('closeModal');
-            const characterModal = document.getElementById('characterModal');
-
-            // 搜索按钮点击事件
-            searchButton.addEventListener('click', searchEmployee);
-            
-            // 输入框回车事件
-            nameInput.addEventListener('keyup', function(event) {
-                if (event.key === 'Enter') {
-                    searchEmployee();
-                } else {
-                    showAutocomplete();
-                }
+                employeesTableBody.appendChild(row);
             });
             
-            // 点击其他地方关闭自动完成
-            document.addEventListener('click', function(event) {
-                if (!nameInput.contains(event.target) && !autocomplete.contains(event.target)) {
-                    autocomplete.classList.add('hidden');
-                }
-            });
-            
-            // 关闭弹窗
-            closeModal.addEventListener('click', function() {
-                characterModal.classList.add('hidden');
-            });
-            
-            // 点击弹窗外部关闭
-            characterModal.addEventListener('click', function(event) {
-                if (event.target === characterModal) {
-                    characterModal.classList.add('hidden');
-                }
-            });
-        }
-
-        // 显示自动完成
-        function showAutocomplete() {
-            const input = document.getElementById('nameInput').value.toLowerCase();
-            const autocomplete = document.getElementById('autocomplete');
-            autocomplete.innerHTML = '';
-            
-            if (input.length < 1) {
-                autocomplete.classList.add('hidden');
-                return;
-            }
-            
-            const matches = employees.filter(employee => 
-                employee.name.toLowerCase().includes(input)
-            );
-            
-            if (matches.length === 0) {
-                autocomplete.classList.add('hidden');
-                return;
-            }
-            
-            matches.forEach(employee => {
-                const div = document.createElement('div');
-                div.className = 'px-4 py-2 hover:bg-rickBlue/20 cursor-pointer transition-colors';
-                div.textContent = employee.name;
-                div.addEventListener('click', function() {
-                    document.getElementById('nameInput').value = employee.name;
-                    autocomplete.classList.add('hidden');
-                    searchEmployee();
+            // 添加员工详情点击事件
+            document.querySelectorAll('.employee-detail').forEach(button => {
+                button.addEventListener('click', () => {
+                    const name = button.getAttribute('data-name');
+                    const total = parseInt(button.getAttribute('data-total'));
+                    showCharacterModal(name, total);
                 });
-                autocomplete.appendChild(div);
             });
-            
-            autocomplete.classList.remove('hidden');
         }
 
-        // 搜索员工
-        function searchEmployee() {
-            const nameInput = document.getElementById('nameInput');
-            const name = nameInput.value.trim();
+        // 根据工时获取样式类
+        function getHourClass(hour) {
+            if (hour === 0) return 'text-gray-500';
+            if (hour < 30) return 'text-red-400';
+            if (hour > 40) return 'text-rick-pink';
+            return '';
+        }
+
+        // 显示角色弹窗
+        function showCharacterModal(employeeNameText, totalHours) {
+            let character = {};
             
-            if (!name) {
-                alert('请输入员工姓名');
-                return;
-            }
-            
-            const employee = employees.find(emp => emp.name === name);
-            
-            if (employee) {
-                displayEmployee(employee);
-                showCharacterModal(employee);
+            // 根据工时选择角色
+            if (totalHours < 168) {
+                // Rick - 工时不足
+                character = {
+                    name: "瑞克·桑切斯",
+                    image: "https://picsum.photos/id/237/800/400", // 示例图片，实际应替换为Rick图片
+                    quote: `嘿，${employeeNameText}！你的工时才${totalHours}小时？这简直是宇宙级别的笑话！赶紧把工时补足到168小时，否则我就把你送到C-137次元去做苦工！别跟我废话，快去工作！`
+                };
+                totalHoursDisplay.className = 'bg-red-900/30 text-red-400';
+            } else if (totalHours === 168) {
+                // Jerry - 工时正常
+                character = {
+                    name: "杰瑞·史密斯",
+                    image: "https://picsum.photos/id/1012/800/400", // 示例图片，实际应替换为Jerry图片
+                    quote: `哦，嗨，${employeeNameText}... 你的工时刚好168小时... 挺好的... 其实我觉得吧，人生的意义不在于工作多少，而在于... 嗯... 躺平？对，躺平就好... 别太努力，会累着自己的...`
+                };
+                totalHoursDisplay.className = 'bg-rick-green/20 text-rick-green';
             } else {
-                alert('未找到该员工，请重新输入');
-            }
-        }
-
-        // 显示员工信息
-        function displayEmployee(employee) {
-            const resultSection = document.getElementById('resultSection');
-            resultSection.classList.remove('hidden');
-            
-            document.getElementById('employeeName').textContent = employee.name;
-            document.getElementById('totalHours').textContent = `总工时: ${employee.total} 小时`;
-            document.getElementById('week1Hours').textContent = employee.hours[0];
-            document.getElementById('week2Hours').textContent = employee.hours[1];
-            document.getElementById('week3Hours').textContent = employee.hours[2];
-            document.getElementById('week4Hours').textContent = employee.hours[3];
-            
-            createHoursChart(employee);
-        }
-
-        // 创建工时图表
-        function createHoursChart(employee) {
-            const ctx = document.getElementById('hoursChart').getContext('2d');
-            
-            // 销毁旧图表
-            if (window.hoursChart) {
-                window.hoursChart.destroy();
+                // Morty - 工时超标
+                character = {
+                    name: "莫蒂·史密斯",
+                    image: "https://picsum.photos/id/1025/800/400", // 示例图片，实际应替换为Morty图片
+                    quote: `哇哦，${employeeNameText}，你已经工作了${totalHours}小时了？比要求的还多... 这... 这有点太多了吧？姥爷说... 说工作太多会变傻的... 也许你应该请假休息一下？我... 我可不想看到你被姥爷惩罚...`
+                };
+                totalHoursDisplay.className = 'bg-rick-pink/20 text-rick-pink';
             }
             
-            // 设置图表颜色
-            const borderColor = '#00BFFF';
-            const backgroundColor = 'rgba(0, 191, 255, 0.2)';
-            const gridColor = 'rgba(0, 255, 255, 0.1)';
+            // 更新弹窗内容
+            characterName.textContent = character.name;
+            characterImage.src = character.image;
+            characterImage.alt = character.name;
+            characterQuote.textContent = character.quote;
+            employeeName.textContent = employeeNameText;
+            totalHoursDisplay.textContent = `总工时: ${totalHours}小时`;
             
-            window.hoursChart = new Chart(ctx, {
-                type: 'line',
+            // 显示弹窗
+            characterModal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden'; // 防止背景滚动
+        }
+
+        // 关闭弹窗
+        function closeCharacterModal() {
+            characterModal.classList.add('hidden');
+            document.body.style.overflow = ''; // 恢复滚动
+        }
+
+        // 初始化统计数据
+        function initStats() {
+            totalEmployeesEl.textContent = employees.length;
+            
+            const 达标员工数 = employees.filter(emp => emp.total === 168).length;
+            达标员工数El.textContent = 达标员工数;
+            
+            const 异常员工数 = employees.length - 达标员工数;
+            异常员工数El.textContent = 异常员工数;
+        }
+
+        // 初始化图表
+        function initChart() {
+            const ctx = document.getElementById('workHoursChart').getContext('2d');
+            
+            // 统计工时分布
+            const under168 = employees.filter(emp => emp.total < 168).length;
+            const exactly168 = employees.filter(emp => emp.total === 168).length;
+            const over168 = employees.filter(emp => emp.total > 168).length;
+            
+            new Chart(ctx, {
+                type: 'doughnut',
                 data: {
-                    labels: ['第1周', '第2周', '第3周', '第4周'],
+                    labels: ['工时不足', '工时正常', '已加班'],
                     datasets: [{
-                        label: '工时',
-                        data: employee.hours,
-                        borderColor: borderColor,
-                        backgroundColor: backgroundColor,
-                        borderWidth: 3,
-                        pointBackgroundColor: '#00FF00',
-                        pointBorderColor: '#000',
-                        pointBorderWidth: 2,
-                        pointRadius: 6,
-                        pointHoverRadius: 8,
-                        tension: 0.4,
-                        fill: true
+                        data: [under168, exactly168, over168],
+                        backgroundColor: [
+                            'rgba(255, 69, 100, 0.7)',  // 红色
+                            'rgba(57, 255, 20, 0.7)',   // 绿色
+                            'rgba(255, 110, 199, 0.7)'  // 粉色
+                        ],
+                        borderColor: [
+                            'rgba(255, 69, 100, 1)',
+                            'rgba(57, 255, 20, 1)',
+                            'rgba(255, 110, 199, 1)'
+                        ],
+                        borderWidth: 2
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: false,
-                            min: 20,
-                            max: 50,
-                            grid: {
-                                color: gridColor
-                            },
-                            ticks: {
-                                color: '#00FFFF'
-                            }
-                        },
-                        x: {
-                            grid: {
-                                color: gridColor
-                            },
-                            ticks: {
-                                color: '#00FFFF'
-                            }
-                        }
-                    },
                     plugins: {
                         legend: {
-                            display: false
+                            position: 'bottom',
+                            labels: {
+                                color: 'white',
+                                font: {
+                                    size: 12
+                                },
+                                padding: 20
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(26, 31, 41, 0.9)',
+                            titleColor: '#00FFFF',
+                            bodyColor: 'white',
+                            borderColor: '#00FFFF',
+                            borderWidth: 1,
+                            padding: 12,
+                            displayColors: true
                         }
                     },
                     animation: {
+                        animateScale: true,
+                        animateRotate: true,
                         duration: 2000,
                         easing: 'easeOutQuart'
-                    }
+                    },
+                    cutout: '65%'
                 }
             });
         }
 
-        // 显示角色弹窗
-        function showCharacterModal(employee) {
-            const modal = document.getElementById('characterModal');
-            const modalContent = document.getElementById('modalContent');
+        // 搜索功能
+        function handleSearch(input) {
+            const searchTerm = input.value.toLowerCase().trim();
             
-            // 判断显示哪个角色
-            const hasOver = employee.hours.some(hour => hour > 40);
-            const hasUnder = employee.hours.some(hour => hour < 40);
-            
-            let character, message, colorClass, glowClass, icon;
-            
-            if (hasOver) {
-                // Rick - 加班
-                character = 'Rick Sanchez';
-                message = 'Whoa! 你加班了！宇宙不在乎你的努力，但你的健康在乎！快去申请休息，否则你的大脑会像我的传送门一样崩溃！';
-                colorClass = 'text-rickBlue';
-                glowClass = 'text-shadow-glow';
-                icon = 'fas fa-flask';
-            } else if (hasUnder) {
-                // Morty - 工时不足
-                character = 'Morty Smith';
-                message = 'Oh jeez... 你的工时有点不足啊。别担心，我也经常逃避责任，但也许我们都该更努力一点？至少达到最低标准吧！';
-                colorClass = 'text-rickGreen';
-                glowClass = 'text-shadow-glow-green';
-                icon = 'fas fa-child';
-            } else {
-                // Terry - 正常
-                character = 'Terry';
-                message = '太棒了！你的工时完美达标！你就像我一样，是个普通人，但这没什么不好的！保持稳定，宇宙需要更多像你这样的稳定因素！';
-                colorClass = 'text-rickYellow';
-                glowClass = 'text-shadow-glow-yellow';
-                icon = 'fas fa-smile';
+            if (searchTerm === '') {
+                renderEmployees();
+                return;
             }
             
-            modalContent.innerHTML = `
-                <div class="w-32 h-32 bg-rickBlack rounded-full flex items-center justify-center mb-6 border-4 ${colorClass} border-glow">
-                    <i class="${icon} text-6xl ${colorClass} animate-pulse-fast"></i>
-                </div>
-                <h3 class="text-2xl font-bold ${colorClass} ${glowClass} mb-4">${character}</h3>
-                <p class="text-lg mb-6">"${message}"</p>
-                <div class="w-full h-1 bg-gradient-to-r from-transparent via-${colorClass} to-transparent mb-6"></div>
-                <p class="text-white/70">${employee.name} 的工时统计：${employee.hours.join(', ')} 小时</p>
-            `;
+            const filteredEmployees = employees.filter(emp => 
+                emp.name.toLowerCase().includes(searchTerm) ||
+                emp.total.toString().includes(searchTerm) ||
+                emp.hours.some(hour => hour.toString().includes(searchTerm))
+            );
             
-            modal.classList.remove('hidden');
+            renderEmployees(filteredEmployees);
         }
+
+        // 滚动动画
+        function handleScrollAnimations() {
+            const elements = document.querySelectorAll('.animate-on-scroll');
+            
+            elements.forEach(element => {
+                const elementPosition = element.getBoundingClientRect().top;
+                const windowHeight = window.innerHeight;
+                
+                if (elementPosition < windowHeight * 0.85) {
+                    element.classList.add('visible');
+                }
+            });
+        }
+
+        // 事件监听
+        closeModal.addEventListener('click', closeCharacterModal);
+        
+        // 点击弹窗背景关闭弹窗
+        characterModal.addEventListener('click', (e) => {
+            if (e.target === characterModal) {
+                closeCharacterModal();
+            }
+        });
+        
+        // 搜索事件
+        globalSearch.addEventListener('input', (e) => handleSearch(e.target));
+        mobileSearch.addEventListener('input', (e) => handleSearch(e.target));
+        
+        // 滚动事件
+        window.addEventListener('scroll', handleScrollAnimations);
+        
+        // 初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            initStars();
+            renderEmployees();
+            initStats();
+            initChart();
+            handleScrollAnimations(); // 初始检查可见元素
+        });
     </script>
 </body>
 </html>
